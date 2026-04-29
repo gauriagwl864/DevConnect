@@ -1,0 +1,14 @@
+<nav style="background:#1a1a2e;padding:14px 30px;display:flex;justify-content:space-between;align-items:center;">
+  <a href="/dashboard" style="color:#e94560;font-size:1.3rem;font-weight:bold;text-decoration:none;">DevConnect</a>
+  <div style="display:flex;gap:16px;align-items:center;">
+    <% if (user) { %>
+      <a href="/dashboard" style="color:#ccc;text-decoration:none;">Home</a>
+      <a href="/posts/new" style="color:#ccc;text-decoration:none;">New Post</a>
+      <a href="/profile/<%= user.id || user._id %>" style="color:#ccc;text-decoration:none;">Profile</a>
+      <a href="/logout" style="color:#e94560;text-decoration:none;">Logout</a>
+    <% } else { %>
+      <a href="/login" style="color:#ccc;text-decoration:none;">Login</a>
+      <a href="/register" style="color:#e94560;text-decoration:none;">Register</a>
+    <% } %>
+  </div>
+</nav>

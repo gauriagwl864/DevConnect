@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard — DevConnect</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f0f1a; color: #eee; min-height: 100vh; }
+    .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+    h1 { color: #e94560; margin-bottom: 6px; }
+    .subtitle { color: #888; margin-bottom: 30px; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 30px; }
+    .search-bar input { flex: 1; padding: 10px 14px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #eee; font-size: 1rem; }
+    .search-bar button { padding: 10px 20px; background: #e94560; border: none; border-radius: 6px; color: #fff; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .card { background: #1a1a2e; border-radius: 10px; padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+    .card h3 { color: #fff; font-size: 1.1rem; }
+    .card p { color: #aaa; font-size: 0.9rem; flex: 1; }
+    .card .meta { color: #666; font-size: 0.8rem; }
+    .card a { color: #e94560; text-decoration: none; font-size: 0.9rem; }
+    .pagination { display: flex; gap: 10px; justify-content: center; margin-top: 40px; }
+    .pagination a { padding: 8px 16px; background: #1a1a2e; border-radius: 6px; color: #ccc; text-decoration: none; }
+    .pagination a.active { background: #e94560; color: #fff; }
+    .empty { text-align: center; color: #555; margin-top: 60px; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <div class="container">
+    <h1>Hey, <%= user.name %> 👋</h1>
+    <p class="subtitle">Here's what's been posted lately</p>
+
+    <form class="search-bar" method="GET" action="/dashboard">
+      <input type="text" name="search" placeholder="Search posts..." value="<%= search %>" />
+      <button type="submit">Search</button>
+    </form>
+
+    <% if (posts.length === 0) { %>
+      <p class="empty">No posts found. <a href="/posts/new" style="color:#e94560;">Write the first one!</a></p>
+    <% } else { %>
+      <div class="grid">
+        <% posts.forEach(post => { %>
+          <div class="card">
+            <h3><%= post.title %></h3>
+            <p><%= post.content.substring(0, 100) %>...</p>
+            <p class="meta">By <%= post.author.name %> &bull; <%= post.createdAt.toDateString() %></p>
+            <p class="meta">❤️ <%= post.likes.length %> likes &bull; 💬 <%= post.comments.length %> comments</p>
+            <a href="/posts/<%= post._id %>">Read more →</a>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="pagination">
+        <% for (let i = 1; i <= pages; i++) { %>
+          <a href="/dashboard?page=<%= i %>&search=<%= search %>" class="<%= i === page ? 'active' : '' %>"><%= i %></a>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <%- include("../partials/footer") %>
+</body>
+</html>

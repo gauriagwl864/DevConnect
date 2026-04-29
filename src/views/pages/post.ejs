@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= post.title %> — DevConnect</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f0f1a; color: #eee; min-height: 100vh; }
+    .container { max-width: 750px; margin: 0 auto; padding: 40px 20px; }
+    h1 { color: #fff; font-size: 2rem; margin-bottom: 10px; }
+    .meta { color: #666; font-size: 0.9rem; margin-bottom: 30px; }
+    .meta a { color: #e94560; text-decoration: none; }
+    .content { color: #ccc; line-height: 1.8; font-size: 1.05rem; white-space: pre-wrap; margin-bottom: 40px; }
+    .actions { display: flex; gap: 14px; margin-bottom: 40px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; }
+    .btn-like { background: #1a1a2e; color: #e94560; border: 1px solid #e94560; }
+    .btn-like.liked { background: #e94560; color: #fff; }
+    .btn-delete { background: transparent; color: #e94560; border: 1px solid #e94560; }
+    .btn-edit { background: #1a1a2e; color: #ccc; border: 1px solid #444; }
+    .comments h3 { color: #e94560; margin-bottom: 16px; }
+    .comment { background: #1a1a2e; padding: 14px; border-radius: 8px; margin-bottom: 10px; }
+    .comment .author { color: #e94560; font-size: 0.85rem; margin-bottom: 4px; }
+    .comment .text { color: #ccc; }
+    .comment-form { display: flex; gap: 10px; margin-top: 20px; }
+    .comment-form input { flex: 1; padding: 10px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #eee; }
+    .comment-form button { padding: 10px 20px; background: #e94560; border: none; border-radius: 6px; color: #fff; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <div class="container">
+    <h1><%= post.title %></h1>
+    <p class="meta">
+      By <a href="/profile/<%= post.author._id %>"><%= post.author.name %></a>
+      &bull; <%= post.createdAt.toDateString() %>
+      &bull; ❤️ <span id="likeCount"><%= post.likes.length %></span> likes
+    </p>
+
+    <div class="content"><%= post.content %></div>
+
+    <div class="actions">
+      <% if (user) { %>
+        <button class="btn btn-like <%= post.likes.map(l => l.toString()).includes(user.id) ? 'liked' : '' %>"
+          id="likeBtn" onclick="toggleLike('<%= post._id %>')">
+          ❤️ Like
+        </button>
+        <% if (user.id === post.author._id.toString()) { %>
+          <button class="btn btn-delete" onclick="deletePost('<%= post._id %>')">🗑 Delete</button>
+        <% } %>
+      <% } %>
+      <a href="/dashboard" style="color:#888;text-decoration:none;align-self:center;">← Back</a>
+    </div>
+
+    <!-- Comments -->
+    <div class="comments">
+      <h3>Comments (<%= post.comments.length %>)</h3>
+
+      <% post.comments.forEach(c => { %>
+        <div class="comment">
+          <p class="author"><%= c.user ? c.user.name : "Unknown" %></p>
+          <p class="text"><%= c.text %></p>
+        </div>
+      <% }) %>
+
+      <% if (user) { %>
+        <div class="comment-form">
+          <input type="text" id="commentInput" placeholder="Add a comment..." />
+          <button onclick="addComment('<%= post._id %>')">Post</button>
+        </div>
+      <% } else { %>
+        <p style="color:#666;margin-top:16px;"><a href="/login" style="color:#e94560;">Login</a> to comment.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <%- include("../partials/footer") %>
+
+  <script>
+    async function toggleLike(postId) {
+      const res = await fetch(`/api/posts/${postId}/like`, { method: "POST" });
+      if (res.status === 401) return window.location.href = "/login";
+      const json = await res.json();
+      document.getElementById("likeCount").textContent = json.likes;
+      const btn = document.getElementById("likeBtn");
+      btn.classList.toggle("liked", json.liked);
+    }
+
+    async function deletePost(postId) {
+      if (!confirm("Delete this post?")) return;
+      const res = await fetch(`/api/posts/${postId}`, { method: "DELETE" });
+      if (res.ok) window.location.href = "/dashboard";
+    }
+
+    async function addComment(postId) {
+      const input = document.getElementById("commentInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      const res = await fetch(`/api/posts/${postId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (res.ok) {
+        input.value = "";
+        window.location.reload();
+      }
+    }
+  </script>
+</body>
+</html>

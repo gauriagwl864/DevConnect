@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>New Post — DevConnect</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f0f1a; color: #eee; min-height: 100vh; }
+    .container { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+    h2 { color: #e94560; margin-bottom: 24px; }
+    input, textarea { width: 100%; padding: 12px; margin-bottom: 16px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #eee; font-size: 1rem; }
+    textarea { height: 220px; resize: vertical; }
+    button { padding: 12px 28px; background: #e94560; border: none; border-radius: 6px; color: #fff; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #c73652; }
+    .error { color: #e94560; margin-bottom: 14px; }
+  </style>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <div class="container">
+    <h2>Write a New Post</h2>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+    <p class="error" id="errMsg" style="display:none;"></p>
+    <form id="postForm">
+      <input type="text" name="title" placeholder="Post title" required />
+      <textarea name="content" placeholder="Write your content here..." required></textarea>
+      <button type="submit">Publish</button>
+    </form>
+  </div>
+
+  <%- include("../partials/footer") %>
+
+  <script>
+    document.getElementById("postForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        window.location.href = "/posts/" + json._id;
+      } else {
+        const el = document.getElementById("errMsg");
+        el.textContent = json.error;
+        el.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

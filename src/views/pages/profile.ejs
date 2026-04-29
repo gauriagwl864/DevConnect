@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= profile.name %> — DevConnect</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f0f1a; color: #eee; min-height: 100vh; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    .profile-card { background: #1a1a2e; padding: 30px; border-radius: 10px; margin-bottom: 40px; }
+    .profile-card h2 { color: #e94560; margin-bottom: 8px; }
+    .profile-card p { color: #aaa; margin-bottom: 6px; }
+    .edit-form { margin-top: 20px; display: none; flex-direction: column; gap: 10px; }
+    .edit-form input, .edit-form textarea { padding: 10px; background: #0f0f1a; border: 1px solid #333; border-radius: 6px; color: #eee; }
+    .edit-form textarea { height: 80px; resize: vertical; }
+    .btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-secondary { background: #1a1a2e; color: #ccc; border: 1px solid #444; }
+    .posts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .post-card { background: #1a1a2e; padding: 18px; border-radius: 8px; }
+    .post-card h4 { color: #fff; margin-bottom: 8px; }
+    .post-card p { color: #888; font-size: 0.85rem; }
+    .post-card a { color: #e94560; text-decoration: none; font-size: 0.85rem; }
+    h3 { color: #e94560; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <div class="container">
+    <div class="profile-card">
+      <h2><%= profile.name %></h2>
+      <p><%= profile.email %></p>
+      <p><%= profile.bio || "No bio yet." %></p>
+
+      <% if (user && (user.id === profile._id.toString())) { %>
+        <button class="btn btn-secondary" style="margin-top:14px;" onclick="toggleEdit()">Edit Profile</button>
+
+        <form class="edit-form" id="editForm">
+          <input type="text" name="name" value="<%= profile.name %>" placeholder="Name" />
+          <textarea name="bio" placeholder="Tell us about yourself..."><%= profile.bio %></textarea>
+          <div style="display:flex;gap:10px;">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleEdit()">Cancel</button>
+          </div>
+        </form>
+      <% } %>
+    </div>
+
+    <h3>Posts by <%= profile.name %></h3>
+    <% if (posts.length === 0) { %>
+      <p style="color:#555;">No posts yet.</p>
+    <% } else { %>
+      <div class="posts-grid">
+        <% posts.forEach(p => { %>
+          <div class="post-card">
+            <h4><%= p.title %></h4>
+            <p><%= p.content.substring(0, 80) %>...</p>
+            <a href="/posts/<%= p._id %>">Read →</a>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <%- include("../partials/footer") %>
+
+  <script>
+    function toggleEdit() {
+      const form = document.getElementById("editForm");
+      form.style.display = form.style.display === "flex" ? "none" : "flex";
+    }
+
+    document.getElementById("editForm") && document.getElementById("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      const res = await fetch("/api/users/<%= profile._id %>", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) window.location.reload();
+    });
+  </script>
+</body>
+</html>
